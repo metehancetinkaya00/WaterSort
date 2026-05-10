@@ -453,10 +453,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BottleController
   bottleColors:
-  - {r: 0.81761, g: 0.1516949, b: 0.1516949, a: 0}
-  - {r: 0.07742961, g: 0.8490566, b: 0.16533794, a: 0}
-  - {r: 0.80825835, g: 0.8553459, b: 0.088762216, a: 0}
-  - {r: 0.046596106, g: 0.058738198, b: 0.7798742, a: 0}
+  - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
   bottleMaskSR: {fileID: 1913548933}
   ScaleAndRotationMultiplierCurve:
     serializedVersion: 2
@@ -566,6 +566,20 @@ MonoBehaviour:
     m_PreInfinity: 0
     m_PostInfinity: 2
     m_RotationOrder: 4
+  fillAmounts:
+  - -5
+  - -2.9
+  - -0.8
+  - 1.3
+  - 3.4
+  rotationValues:
+  - 54
+  - 71
+  - 83
+  - 90
+  numberOfColorsInBottle: 3
+  topColor: {r: 0, g: 0, b: 0, a: 0}
+  numberOfTopColorLayers: 1
   timeToRotate: 3
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
