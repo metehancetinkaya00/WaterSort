@@ -24,6 +24,16 @@ public class BottleController : MonoBehaviour
     public Color topColor;
     public int numberOfTopColorLayers = 1;
 
+    public BottleController bottleControllerRef;
+    public bool justThisBottle = false;
+    private int numberOfColorsToTransfer = 0;
+
+    public Transform leftRotationPoint;
+    public Transform rightRotationPoint;
+    private Transform chosenRotationPoint;
+
+    private float directionMultiplier = 1.0f;
+
     void Start()
     {
         bottleMaskSR.material.SetFloat("_FillAmount", fillAmounts[numberOfColorsInBottle]);
@@ -35,10 +45,41 @@ public class BottleController : MonoBehaviour
 
     private void Update()
     {
-        if(Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
+        if(Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame && justThisBottle==true)
         {
+            UpdateTopColorValues();
+
+            if(bottleControllerRef.FillBottleCheck(topColor))
+            {
+                ChoseRotationPointAndDirection();
+
+                numberOfColorsToTransfer = Mathf.Min(numberOfTopColorLayers, 4 - bottleControllerRef.numberOfColorsInBottle);
+
+                for (int i = 0; i < numberOfColorsToTransfer; i++)
+                {
+                    bottleControllerRef.bottleColors[bottleControllerRef.numberOfColorsInBottle + i] = topColor;
+                }
+                bottleControllerRef.UpdateColorsOnShader();
+            }
+            CalculateRotationIndex(4 - bottleControllerRef.numberOfColorsInBottle);
             StartCoroutine(RotateBottle());
         }
+    }
+
+    public void StartColorTransfer()
+    {
+        ChoseRotationPointAndDirection();
+
+        numberOfColorsToTransfer = Mathf.Min(numberOfTopColorLayers, 4 - bottleControllerRef.numberOfColorsInBottle);
+
+        for (int i = 0; i < numberOfColorsToTransfer; i++)
+        {
+            bottleControllerRef.bottleColors[bottleControllerRef.numberOfColorsInBottle + i] = topColor;
+        }
+        bottleControllerRef.UpdateColorsOnShader();
+
+        CalculateRotationIndex(4 - bottleControllerRef.numberOfColorsInBottle);
+        StartCoroutine(RotateBottle());
     }
 
     void UpdateColorsOnShader()
@@ -56,30 +97,38 @@ public class BottleController : MonoBehaviour
         float lerpValue;
         float angleValue;
 
+        float lastAngleValue = 0;
+
         while (t < timeToRotate)
         {
             lerpValue = t / timeToRotate;
-            angleValue = Mathf.Lerp(0.0f, rotationValues[rotationIndex], lerpValue);
+            angleValue = Mathf.Lerp(0.0f, directionMultiplier * rotationValues[rotationIndex], lerpValue);
 
-            transform.eulerAngles = new Vector3(0, 0, angleValue);
+            //transform.eulerAngles = new Vector3(0, 0, angleValue);
+
+            transform.RotateAround(chosenRotationPoint.position, Vector3.forward, lastAngleValue - angleValue);
+
             bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
 
             if (fillAmounts[numberOfColorsInBottle] > FillAmountCurve.Evaluate(angleValue))
             {
                 bottleMaskSR.material.SetFloat("_FillAmount", FillAmountCurve.Evaluate(angleValue));
+
+                bottleControllerRef.FillUp(FillAmountCurve.Evaluate(lastAngleValue) - FillAmountCurve.Evaluate(angleValue));
             }
 
 
             t += Time.deltaTime * RotationSpeedMultiplier.Evaluate(angleValue);
-
+            lastAngleValue = angleValue;
             yield return new WaitForEndOfFrame();
         }
-        angleValue = rotationValues[rotationIndex];
-        transform.eulerAngles = new Vector3(0, 0, angleValue);
+        angleValue = directionMultiplier * rotationValues[rotationIndex];
+        //transform.eulerAngles = new Vector3(0, 0, angleValue);
         bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
         bottleMaskSR.material.SetFloat("_FillAmount", FillAmountCurve.Evaluate(angleValue));
 
-        numberOfColorsInBottle -= numberOfTopColorLayers;
+        numberOfColorsInBottle -= numberOfColorsToTransfer;
+        bottleControllerRef.numberOfColorsInBottle += numberOfColorsToTransfer;
 
         StartCoroutine(RotateBottleBack());
     }
@@ -90,13 +139,20 @@ public class BottleController : MonoBehaviour
         float lerpValue;
         float angleValue;
 
+        float lastAngleValue = directionMultiplier * rotationValues[rotationIndex];
+
         while (t < timeToRotate)
         {
             lerpValue = t / timeToRotate;
-            angleValue = Mathf.Lerp(rotationValues[rotationIndex], 0.0f, lerpValue);
+            angleValue = Mathf.Lerp(directionMultiplier * rotationValues[rotationIndex], 0.0f, lerpValue);
 
-            transform.eulerAngles = new Vector3(0, 0, angleValue);
+            //transform.eulerAngles = new Vector3(0, 0, angleValue);
+
+            transform.RotateAround(chosenRotationPoint.position, Vector3.forward, lastAngleValue - angleValue);
+
             bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
+
+            lastAngleValue = angleValue;
 
             t += Time.deltaTime;
 
@@ -108,7 +164,7 @@ public class BottleController : MonoBehaviour
         bottleMaskSR.material.SetFloat("_SARM", ScaleAndRotationMultiplierCurve.Evaluate(angleValue));
     }
 
-    void UpdateTopColorValues()
+    public void UpdateTopColorValues()
     {
         if(numberOfColorsInBottle!=0)
         {
@@ -151,6 +207,54 @@ public class BottleController : MonoBehaviour
             }
 
             rotationIndex=3-(numberOfColorsInBottle-numberOfTopColorLayers);
+        }
+    }
+    public bool FillBottleCheck(Color colorToCheck)
+    {
+        if(numberOfColorsInBottle==0)
+        {
+            return true;
+        }
+        else
+        {
+            if(numberOfColorsInBottle==4)
+            {
+                return false;
+            }
+            else
+            {
+                if(topColor.Equals(colorToCheck))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+    }
+    private void CalculateRotationIndex(int numberOfEmptySpacesInSecondBottle)
+    {
+        rotationIndex=3-(numberOfColorsInBottle - Mathf.Min(numberOfEmptySpacesInSecondBottle, numberOfTopColorLayers));
+    }
+
+    private void FillUp(float fillAmountToAdd)
+    {
+        bottleMaskSR.material.SetFloat("_FillAmount", bottleMaskSR.material.GetFloat("_FillAmount") +  fillAmountToAdd);
+    }
+
+    private void ChoseRotationPointAndDirection()
+    {
+        if(transform.position.x>bottleControllerRef.transform.position.x)
+        {
+            chosenRotationPoint = leftRotationPoint;
+            directionMultiplier = -1.0f;
+        }
+        else
+        {
+            chosenRotationPoint=rightRotationPoint;
+            directionMultiplier=1.0f;
         }
     }
 }
