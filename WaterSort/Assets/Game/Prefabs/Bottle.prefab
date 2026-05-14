@@ -363,7 +363,8 @@ MonoBehaviour:
   justThisBottle: 0
   leftRotationPoint: {fileID: 1957100420925354948}
   rightRotationPoint: {fileID: 4011520841986377233}
-  timeToRotate: 0.5
+  lineRenderer: {fileID: 0}
+  timeToRotate: 1.5
 --- !u!61 &-8508425915698455114
 BoxCollider2D:
   m_ObjectHideFlags: 0
