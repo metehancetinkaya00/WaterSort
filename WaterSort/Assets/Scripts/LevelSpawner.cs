@@ -2,8 +2,15 @@ using UnityEngine;
 
 public class LevelSpawner : MonoBehaviour
 {
+    [Header("Level Settings")]
+
+    [Tooltip("The level data that contains bottle positions, colors, and color counts.")]
     public LevelData levelData;
+
+    [Tooltip("The bottle prefab that will be spawned for each bottle in the level.")]
     public GameObject bottlePrefab;
+
+    [Tooltip("Reference to the GameController in the scene. Optional if it is not used by this spawner.")]
     public GameController gameController;
 
     private const int MaxColors = 4;
@@ -17,19 +24,16 @@ public class LevelSpawner : MonoBehaviour
     {
         if (levelData == null)
         {
-        
             return;
         }
 
         if (bottlePrefab == null)
         {
-          
             return;
         }
 
         if (levelData.bottles == null || levelData.bottles.Length == 0)
         {
-     
             return;
         }
 
@@ -45,7 +49,6 @@ public class LevelSpawner : MonoBehaviour
 
             if (bc == null)
             {
-               
                 continue;
             }
 
@@ -57,7 +60,6 @@ public class LevelSpawner : MonoBehaviour
                 bc.bottleColors = new Color[MaxColors];
             }
 
-          
             if (colorCount == 0)
             {
                 for (int c = 0; c < MaxColors; c++)
@@ -68,7 +70,6 @@ public class LevelSpawner : MonoBehaviour
                 continue;
             }
 
-       
             Color lastValidColor = Color.white;
 
             if (data.colors != null && data.colors.Length > 0)
@@ -85,7 +86,6 @@ public class LevelSpawner : MonoBehaviour
                 }
                 else
                 {
-               
                     bc.bottleColors[c] = lastValidColor;
                 }
             }
