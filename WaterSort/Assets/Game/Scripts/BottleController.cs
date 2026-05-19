@@ -149,7 +149,7 @@ public class BottleController : MonoBehaviour
     {
         if (bottleControllerRef == null)
         {
-            Debug.LogError("Bottle Controller Ref atanmadı!", this);
+            Debug.LogError("There Is No Bottle Controller Ref", this);
             return;
         }
 
